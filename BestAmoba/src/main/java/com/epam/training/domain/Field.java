@@ -5,6 +5,10 @@ public class Field {
     private double weight;
     private boolean isEnemy;
 
+    public Field() {
+
+    }
+
     public Field(double weight, boolean isEnemy) {
         this.weight = weight;
         this.isEnemy = isEnemy;

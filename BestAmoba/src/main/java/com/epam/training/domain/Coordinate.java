@@ -1,5 +1,8 @@
 package com.epam.training.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Coordinate {
 
     private int x;
@@ -20,6 +23,21 @@ public class Coordinate {
 
     public double getDistance(Coordinate otherCoordinate) {
         return Math.sqrt(Math.pow(x - otherCoordinate.getX(), 2) + Math.pow(y - otherCoordinate.getY(), 2));
+    }
+
+    public List<Coordinate> getNeighbours() {
+        List<Coordinate> neighbours = new ArrayList<Coordinate>();
+
+        neighbours.add(new Coordinate(x, y + 1));
+        neighbours.add(new Coordinate(x, y - 1));
+        neighbours.add(new Coordinate(x + 1, y));
+        neighbours.add(new Coordinate(x - 1, y));
+        neighbours.add(new Coordinate(x + 1, y + 1));
+        neighbours.add(new Coordinate(x + 1, y - 1));
+        neighbours.add(new Coordinate(x - 1, y + 1));
+        neighbours.add(new Coordinate(x - 1, y - 1));
+
+        return neighbours;
     }
 
     @Override
