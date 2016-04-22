@@ -21,8 +21,14 @@ public class BaseStrategy implements Strategy {
 
     @Override
     public Coordinate getNext(Coordinate lastMove) {
-        arena.add(lastMove, new Field(0, true));
+        if (!arena.isEmpty()) {
+            arena.add(lastMove, new Field(0, true));
 
+        } else {
+            Coordinate nextCoordinate = new Coordinate(0, 0);
+            arena.add(nextCoordinate, new Field(0, false));
+            return nextCoordinate;
+        }
         BattleArena freeMap = setWeights(arena.getEffectiveMap());
 
         Coordinate nextCoordinate = getMaxWeightCoordinate(freeMap);
@@ -32,6 +38,7 @@ public class BaseStrategy implements Strategy {
 
     private BattleArena setWeights(BattleArena effectiveMap) {
         BattleArena freeMap = effectiveMap.getFreeMap();
+        System.out.println(freeMap);
         for (Entry<Coordinate, Field> entry : freeMap) {
             entry.getValue().setWeight(calculateWeight(effectiveMap, entry.getKey()));
         }
@@ -70,7 +77,7 @@ public class BaseStrategy implements Strategy {
                 lastMarkIsOurs = effectiveMap.isOccupied(nextCoordinate) && !effectiveMap.getFieldOnCoordinate(nextCoordinate).isEnemy();
             }
             if (effectiveMap.isOccupied(nextCoordinate)) {
-                Field field = effectiveMap.getFieldOnCoordinate(coordinate);
+                Field field = effectiveMap.getFieldOnCoordinate(nextCoordinate);
                 if (field.isEnemy()) {
                     enemyMarkCount++;
                     weight += 0.5;

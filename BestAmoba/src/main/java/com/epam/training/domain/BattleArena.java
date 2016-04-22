@@ -54,6 +54,10 @@ public class BattleArena implements Iterable<Entry<Coordinate, Field>> {
         return arena.containsKey(coordinate);
     }
 
+    public boolean isEmpty() {
+        return arena.isEmpty();
+    }
+
     public BattleArena getFreeMap() {
         Map<Coordinate, Field> freeMap = new HashMap<Coordinate, Field>();
         Set<Entry<Coordinate, Field>> entrySet = arena.entrySet();
@@ -140,6 +144,11 @@ public class BattleArena implements Iterable<Entry<Coordinate, Field>> {
     @Override
     public Iterator<Entry<Coordinate, Field>> iterator() {
         return arena.entrySet().iterator();
+    }
+
+    @Override
+    public String toString() {
+        return "BattleArena [arena=" + arena + "]";
     }
 
 }
