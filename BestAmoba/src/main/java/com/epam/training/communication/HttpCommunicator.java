@@ -63,7 +63,8 @@ public class HttpCommunicator implements Communicator {
         try {
             IsMyTurnResponseData data = mapper.readValue(response.getEntity().getContent(), IsMyTurnResponseData.class);
             lastMove = new Coordinate(data.getLastMove().getX(), data.getLastMove().getY());
-            return true;
+            System.out.println("isMyTurnResponse: " + data);
+            return data.getIsMyTurn();
         } catch (UnsupportedOperationException | IOException e) {
             e.printStackTrace();
             return false;
@@ -81,10 +82,11 @@ public class HttpCommunicator implements Communicator {
         PutResponseData data = null;
         try {
             data = mapper.readValue(response.getEntity().getContent(), PutResponseData.class);
+            System.out.println("makeMoveResponse: " + data);
         } catch (UnsupportedOperationException | IOException e) {
             e.printStackTrace();
         }
-        return data != null && data.getStatus() == 0;
+        return data != null && data.getStatusCode() == 200;
     }
 
     private HttpResponse executeGetRequest(String endpoint) {

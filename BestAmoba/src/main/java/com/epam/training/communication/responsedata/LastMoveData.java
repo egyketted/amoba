@@ -30,4 +30,9 @@ public class LastMoveData {
         this.t = t;
     }
 
+    @Override
+    public String toString() {
+        return "LastMoveData [x=" + x + ", y=" + y + ", t=" + t + "]";
+    }
+
 }

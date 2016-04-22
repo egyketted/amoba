@@ -2,15 +2,15 @@ package com.epam.training.communication.responsedata;
 
 public class IsMyTurnResponseData {
 
-    private boolean isMyTrun;
+    private boolean isMyTurn;
     private LastMoveData lastMove;
 
-    public boolean isMyTrun() {
-        return isMyTrun;
+    public boolean getIsMyTurn() {
+        return isMyTurn;
     }
 
-    public void setMyTrun(boolean isMyTrun) {
-        this.isMyTrun = isMyTrun;
+    public void setisMyTurn(boolean isMyTurn) {
+        this.isMyTurn = isMyTurn;
     }
 
     public LastMoveData getLastMove() {
@@ -19,6 +19,11 @@ public class IsMyTurnResponseData {
 
     public void setLastMove(LastMoveData lastMove) {
         this.lastMove = lastMove;
+    }
+
+    @Override
+    public String toString() {
+        return "IsMyTurnResponseData [isMyTurn=" + isMyTurn + ", lastMove=" + lastMove + "]";
     }
 
 }
