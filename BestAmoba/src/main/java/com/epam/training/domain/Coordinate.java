@@ -5,8 +5,8 @@ import java.util.List;
 
 public class Coordinate {
 
-    private int x;
-    private int y;
+    private final int x;
+    private final int y;
 
     public Coordinate(int x, int y) {
         this.x = x;
@@ -38,6 +38,10 @@ public class Coordinate {
         neighbours.add(new Coordinate(x - 1, y - 1));
 
         return neighbours;
+    }
+
+    public Coordinate getNext(Direction direction) {
+        return new Coordinate(x + direction.getXDifference(), y + direction.getYDifference());
     }
 
     @Override

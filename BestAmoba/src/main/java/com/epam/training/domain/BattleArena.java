@@ -11,6 +11,7 @@ import java.util.Set;
 
 public class BattleArena implements Iterable<Entry<Coordinate, Field>> {
 
+    private static final int SQUARE_SIZE = 10;
     private static final int EFFECTIVE_MAP_SIZE_LIMIT = 4;
     private static final int DISTANCE_LIMIT = 10;
 
@@ -24,6 +25,10 @@ public class BattleArena implements Iterable<Entry<Coordinate, Field>> {
         this.arena = new HashMap<Coordinate, Field>(arena);
     }
 
+    public void add(Coordinate coordinate, Field field) {
+        arena.put(coordinate, field);
+    }
+
     public boolean isEnemyCoordinate(Coordinate coordinate) {
         Field field = arena.get(coordinate);
         return field.isEnemy();
@@ -35,12 +40,18 @@ public class BattleArena implements Iterable<Entry<Coordinate, Field>> {
     }
 
     public void setWeight(Coordinate coordinate, double weight) {
-        Field field = arena.get(coordinate);
-        field.setWeight(weight);
+        if (arena.containsKey(coordinate)) {
+            Field field = arena.get(coordinate);
+            field.setWeight(weight);
+        }
     }
 
     public Field getFieldOnCoordinate(Coordinate coordinate) {
         return arena.get(coordinate);
+    }
+
+    public boolean isOccupied(Coordinate coordinate) {
+        return arena.containsKey(coordinate);
     }
 
     public BattleArena getFreeMap() {
@@ -94,24 +105,39 @@ public class BattleArena implements Iterable<Entry<Coordinate, Field>> {
         return distances.get(0) < DISTANCE_LIMIT;
     }
 
-    /*
     private boolean isCoordinateInSquare(Entry<Coordinate, Field> check) {
+        List<Coordinate> coordinatesInSquare = getCoordiatesInSquare(check.getKey());
         if (check.getValue().isEnemy()) {
-            for (Entry<Coordinate, Field> entry : entrySet) {
-                if (entry.getValue().isEnemy()) {
-                    distances.add(check.getKey().getDistance(entry.getKey()));
+            for (Coordinate coordinate : coordinatesInSquare) {
+                if (arena.containsKey(coordinate)) {
+                    if (arena.get(coordinate).isEnemy()) {
+                        return true;
+                    }
                 }
             }
         } else {
-            for (Entry<Coordinate, Field> entry : entrySet) {
-                if (!entry.getValue().isEnemy()) {
-                    distances.add(check.getKey().getDistance(entry.getKey()));
+            for (Coordinate coordinate : coordinatesInSquare) {
+                if (arena.containsKey(coordinate)) {
+                    if (!arena.get(coordinate).isEnemy()) {
+                        return true;
+                    }
                 }
             }
         }
-    
+        return false;
     }
-    */
+
+    private List<Coordinate> getCoordiatesInSquare(Coordinate coordinate) {
+        List<Coordinate> coordinates = new ArrayList<>();
+        for (int i = -SQUARE_SIZE; i < SQUARE_SIZE; i++) {
+            for (int j = -SQUARE_SIZE; j < SQUARE_SIZE; j++) {
+                coordinates.add(new Coordinate(coordinate.getX() + i, coordinate.getY() + j));
+            }
+        }
+        return coordinates;
+    }
+
+    @Override
     public Iterator<Entry<Coordinate, Field>> iterator() {
         return arena.entrySet().iterator();
     }
