@@ -1,9 +1,29 @@
 package com.epam.training.domain;
 
-import java.util.Map;
-
 public class Field {
 
-    private Map<Coordinate, Boolean> arena;
+    private double weight;
+    private boolean isEnemy;
+
+    public Field(double weight, boolean isEnemy) {
+        this.weight = weight;
+        this.isEnemy = isEnemy;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+    public boolean isEnemy() {
+        return isEnemy;
+    }
+
+    public void setEnemy(boolean isEnemy) {
+        this.isEnemy = isEnemy;
+    }
 
 }
