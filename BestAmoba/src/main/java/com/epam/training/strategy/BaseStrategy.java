@@ -90,7 +90,7 @@ public class BaseStrategy implements Strategy {
     }
 
     private Coordinate getMaxWeightCoordinate(BattleArena map) {
-        double maxValue = 0;
+        double maxValue = -10000000;
         Entry<Coordinate, Field> maxEntry = null;
         for (Entry<Coordinate, Field> entry : map) {
             double value = entry.getValue().getWeight();
