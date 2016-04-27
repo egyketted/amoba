@@ -2,6 +2,8 @@ package com.epam.training.communication.responsedata;
 
 public class IsMyTurnResponseData {
 
+    private int statusCode;
+    private String message;
     private boolean isMyTurn;
     private LastMoveData lastMove;
 
@@ -24,6 +26,22 @@ public class IsMyTurnResponseData {
     @Override
     public String toString() {
         return "IsMyTurnResponseData [isMyTurn=" + isMyTurn + ", lastMove=" + lastMove + "]";
+    }
+
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
 }

@@ -2,6 +2,8 @@ package com.epam.training.communication.responsedata;
 
 public class RegisterRequestAnswer {
 
+    private int statusCode;
+    private String message;
     private String gid;
     private String type;
     private String uuid;
@@ -28,6 +30,22 @@ public class RegisterRequestAnswer {
 
     public void setUuid(String uuid) {
         this.uuid = uuid;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
 }
