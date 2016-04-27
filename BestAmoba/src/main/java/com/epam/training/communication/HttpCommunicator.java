@@ -75,7 +75,7 @@ public class HttpCommunicator implements Communicator {
         }
         try {
             IsMyTurnResponseData data = mapper.readValue(response.getEntity().getContent(), IsMyTurnResponseData.class);
-            if (data.getLastMove().isFirst()) {
+            if (data.isFirst()) {
                 lastMove = null;
             } else {
                 lastMove = new Coordinate(data.getLastMove().getX(), data.getLastMove().getY());
