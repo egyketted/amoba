@@ -28,7 +28,7 @@ public class App {
                 Thread.sleep(1000);
             }
             gameEnded = !communicator.makeMove(strategy.getNext(communicator.getLastEnemyMove()));
-            Thread.sleep(2000);
+            Thread.sleep(5000);
         }
     }
 
