@@ -12,6 +12,7 @@ import com.epam.training.domain.Field;
 
 public class BaseStrategy implements Strategy {
 
+    private static final double ENEMY_MARK_WEIGHT_MULTIPLIER = 1.2;
     private static final double MARK_COUNT_SCALE = 3;
     private static final double NEXT_COORDINATE_IS_FREE_MULTIPLIER = 1.25;
     private static final double OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER = 1.1; // checked from both directions, counted twice!
@@ -92,6 +93,7 @@ public class BaseStrategy implements Strategy {
             nextCoordinate = nextCoordinate.getNext(direction);
         }
         weight = Math.pow(MARK_COUNT_SCALE, markCount) * (effectiveMap.isOccupied(nextCoordinate) ? 1 : NEXT_COORDINATE_IS_FREE_MULTIPLIER);
+        weight *= markIsOurs ? 1 : ENEMY_MARK_WEIGHT_MULTIPLIER;
         return new DirectionWeightParameter(weight, markIsOurs, markCount);
 
     }
