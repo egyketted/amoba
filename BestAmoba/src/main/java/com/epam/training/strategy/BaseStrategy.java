@@ -87,7 +87,8 @@ public class BaseStrategy implements Strategy {
         double weight = 0;
 
         Coordinate nextCoordinate = coordinate.getNext(direction);
-        FieldType markIsOurs = effectiveMap.getFieldOnCoordinate(nextCoordinate).getType();
+        FieldType markIsOurs = effectiveMap.getFieldOnCoordinate(nextCoordinate) == null ? FieldType.EMPTY
+                : effectiveMap.getFieldOnCoordinate(nextCoordinate).getType();
 
         while (effectiveMap.isOccupied(nextCoordinate) && effectiveMap.getFieldOnCoordinate(nextCoordinate).getType() == markIsOurs) {
             markCount++;
