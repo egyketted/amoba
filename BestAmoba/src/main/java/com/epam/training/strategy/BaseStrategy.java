@@ -34,7 +34,6 @@ public class BaseStrategy implements Strategy {
 
         BattleArena freeMap = setWeights(arena.getEffectiveMap());
         System.out.println("freemap: " + freeMap);
-        System.out.println("arena: " + arena);
 
         Coordinate nextCoordinate = getMaxWeightCoordinate(freeMap);
         arena.add(nextCoordinate, new Field(0, false));
@@ -85,7 +84,7 @@ public class BaseStrategy implements Strategy {
         double weight = 0;
 
         Coordinate nextCoordinate = coordinate.getNext(direction);
-        boolean markIsOurs = effectiveMap.isOccupied(nextCoordinate) && !effectiveMap.getFieldOnCoordinate(nextCoordinate).isEnemy();
+        boolean markIsOurs = !effectiveMap.isOccupied(nextCoordinate) || !effectiveMap.getFieldOnCoordinate(nextCoordinate).isEnemy();
 
         while (effectiveMap.isOccupied(nextCoordinate) && effectiveMap.getFieldOnCoordinate(nextCoordinate).isEnemy() == markIsOurs) {
             markCount++;

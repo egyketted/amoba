@@ -32,7 +32,7 @@ public class Field {
 
     @Override
     public String toString() {
-        return "";
+        return String.valueOf(weight);
     }
 
 }
