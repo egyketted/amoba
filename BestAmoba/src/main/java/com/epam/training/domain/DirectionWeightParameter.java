@@ -3,8 +3,15 @@ package com.epam.training.domain;
 public class DirectionWeightParameter {
 
     private double weight;
-    private boolean markIsOurs;
+    private FieldType type;
     private int markCount;
+
+    public DirectionWeightParameter(double weight, FieldType type, int markCount) {
+        super();
+        this.weight = weight;
+        this.type = type;
+        this.markCount = markCount;
+    }
 
     public int getMarkCount() {
         return markCount;
@@ -17,28 +24,20 @@ public class DirectionWeightParameter {
     public DirectionWeightParameter() {
     }
 
-    public DirectionWeightParameter(double weight, boolean lastMarkIsOurs, int markCount) {
-        super();
-        this.weight = weight;
-
-        this.markIsOurs = lastMarkIsOurs;
-        this.markCount = markCount;
-    }
-
     public double getWeight() {
         return weight;
     }
 
-    public boolean isLastMarkIsOurs() {
-        return markIsOurs;
+    public FieldType getType() {
+        return type;
+    }
+
+    public void setType(FieldType type) {
+        this.type = type;
     }
 
     public void setWeight(double weight) {
         this.weight = weight;
-    }
-
-    public void setLastMarkIsOurs(boolean lastMarkIsOurs) {
-        this.markIsOurs = lastMarkIsOurs;
     }
 
 }

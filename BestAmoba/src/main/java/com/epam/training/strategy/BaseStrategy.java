@@ -9,6 +9,7 @@ import com.epam.training.domain.Coordinate;
 import com.epam.training.domain.Direction;
 import com.epam.training.domain.DirectionWeightParameter;
 import com.epam.training.domain.Field;
+import com.epam.training.domain.FieldType;
 
 public class BaseStrategy implements Strategy {
 
@@ -28,17 +29,17 @@ public class BaseStrategy implements Strategy {
 
         if (lastMove == null) {
             Coordinate nextCoordinate = new Coordinate((int) Math.random() * 1000, (int) Math.random() * 1000);
-            arena.add(nextCoordinate, new Field(0, false));
+            arena.add(nextCoordinate, new Field(0, FieldType.OWN));
             System.out.println(nextCoordinate);
             return nextCoordinate;
         }
-        arena.add(lastMove, new Field(0, true));
+        arena.add(lastMove, new Field(0, FieldType.ENEMY));
 
         BattleArena freeMap = setWeights(arena.getEffectiveMap());
         System.out.println("freemap: " + freeMap);
 
         Coordinate nextCoordinate = getMaxWeightCoordinate(freeMap);
-        arena.add(nextCoordinate, new Field(0, false));
+        arena.add(nextCoordinate, new Field(0, FieldType.OWN));
         System.out.println(nextCoordinate);
         return nextCoordinate;
     }
@@ -58,7 +59,7 @@ public class BaseStrategy implements Strategy {
             weights.put(direction, checkDirection(direction, effectiveMap, coordinate));
         }
         for (Direction direction : weights.keySet()) {
-            if (weights.get(direction.getOposite()).isLastMarkIsOurs() != weights.get(direction).isLastMarkIsOurs()) {
+            if (weights.get(direction.getOposite()).getType().isEnemy(weights.get(direction).getType())) {
                 weights.get(direction).setWeight(0);
             } else {
                 weights.get(direction).setWeight(weights.get(direction).getWeight() * OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER);
@@ -66,12 +67,12 @@ public class BaseStrategy implements Strategy {
         }
 
         for (Direction direction : weights.keySet()) {
-            if (weights.get(direction).getMarkCount() < 4 && !weights.get(direction).isLastMarkIsOurs()) {
-                if (weights.get(direction.getOposite()).isLastMarkIsOurs()) {
+            if (weights.get(direction).getMarkCount() < 4 && weights.get(direction).getType() == FieldType.ENEMY) {
+                if (weights.get(direction.getOposite()).getType() == FieldType.OWN) {
                     weights.get(direction).setWeight(0);
-                } else if (weights.get(direction).getMarkCount() >= 4 && !weights.get(direction).isLastMarkIsOurs()) {
-                    weights.get(direction).setWeight(PANIC_WEIGHT);
                 }
+            } else if (weights.get(direction).getMarkCount() >= 4 && weights.get(direction).getType() == FieldType.ENEMY) {
+                weights.get(direction).setWeight(PANIC_WEIGHT);
             }
         }
 
@@ -86,14 +87,14 @@ public class BaseStrategy implements Strategy {
         double weight = 0;
 
         Coordinate nextCoordinate = coordinate.getNext(direction);
-        boolean markIsOurs = !effectiveMap.isOccupied(nextCoordinate) || !effectiveMap.getFieldOnCoordinate(nextCoordinate).isEnemy();
+        FieldType markIsOurs = effectiveMap.getFieldOnCoordinate(nextCoordinate).getType();
 
-        while (effectiveMap.isOccupied(nextCoordinate) && effectiveMap.getFieldOnCoordinate(nextCoordinate).isEnemy() != markIsOurs) {
+        while (effectiveMap.isOccupied(nextCoordinate) && effectiveMap.getFieldOnCoordinate(nextCoordinate).getType() == markIsOurs) {
             markCount++;
             nextCoordinate = nextCoordinate.getNext(direction);
         }
         weight = Math.pow(MARK_COUNT_SCALE, markCount) * (effectiveMap.isOccupied(nextCoordinate) ? 1 : NEXT_COORDINATE_IS_FREE_MULTIPLIER);
-        weight *= markIsOurs ? 1 : ENEMY_MARK_WEIGHT_MULTIPLIER;
+        weight *= markIsOurs == FieldType.ENEMY ? ENEMY_MARK_WEIGHT_MULTIPLIER : 1;
         return new DirectionWeightParameter(weight, markIsOurs, markCount);
 
     }

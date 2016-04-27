@@ -3,15 +3,16 @@ package com.epam.training.domain;
 public class Field {
 
     private double weight;
-    private boolean isEnemy;
+    private FieldType type;
 
     public Field() {
 
     }
 
-    public Field(double weight, boolean isEnemy) {
+    public Field(double weight, FieldType type) {
+        super();
         this.weight = weight;
-        this.isEnemy = isEnemy;
+        this.type = type;
     }
 
     public double getWeight() {
@@ -22,12 +23,16 @@ public class Field {
         this.weight = weight;
     }
 
-    public boolean isEnemy() {
-        return isEnemy;
+    public FieldType getType() {
+        return type;
     }
 
-    public void setEnemy(boolean isEnemy) {
-        this.isEnemy = isEnemy;
+    public boolean isEnemy() {
+        return type == FieldType.ENEMY;
+    }
+
+    public void setType(FieldType type) {
+        this.type = type;
     }
 
     @Override
