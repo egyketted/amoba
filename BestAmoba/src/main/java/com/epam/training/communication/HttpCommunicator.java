@@ -46,7 +46,10 @@ public class HttpCommunicator implements Communicator {
             return false;
         }
         try {
-            uuid = mapper.readValue(response.getEntity().getContent(), RegisterRequestAnswer.class).getUuid();
+            RegisterRequestAnswer readValue = mapper.readValue(response.getEntity().getContent(), RegisterRequestAnswer.class);
+            uuid = readValue.getUuid();
+            System.out.println(readValue.getGid().toString());
+            System.out.println(readValue.getType().toString());
         } catch (UnsupportedOperationException | IOException e) {
             e.printStackTrace();
             return false;

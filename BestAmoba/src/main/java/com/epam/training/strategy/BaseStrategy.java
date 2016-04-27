@@ -12,6 +12,8 @@ import com.epam.training.domain.Field;
 
 public class BaseStrategy implements Strategy {
 
+    private static final double NEXT_COORDINATE_IS_FREE_MULTIPLIER = 1.25;
+    private static final double OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER = 1.1; // checked from both directions, counted twice!
     private static final int PANIC_WEIGHT = 1000000;
     private BattleArena arena;
 
@@ -25,7 +27,7 @@ public class BaseStrategy implements Strategy {
             arena.add(lastMove, new Field(0, true));
 
         } else {
-            Coordinate nextCoordinate = new Coordinate(0, 0);
+            Coordinate nextCoordinate = new Coordinate(1, 1);
             arena.add(nextCoordinate, new Field(0, false));
             return nextCoordinate;
         }
@@ -38,7 +40,6 @@ public class BaseStrategy implements Strategy {
 
     private BattleArena setWeights(BattleArena effectiveMap) {
         BattleArena freeMap = effectiveMap.getFreeMap();
-        System.out.println(freeMap);
         for (Entry<Coordinate, Field> entry : freeMap) {
             entry.getValue().setWeight(calculateWeight(effectiveMap, entry.getKey()));
         }
@@ -52,41 +53,43 @@ public class BaseStrategy implements Strategy {
             weights.put(direction, checkDirection(direction, effectiveMap, coordinate));
         }
         for (Direction direction : weights.keySet()) {
-            if (weights.get(direction).getEnemyMarkCount() < 4 && !weights.get(direction).isLastMarkIsOurs()) {
+            if (weights.get(direction.getOposite()).isLastMarkIsOurs() != weights.get(direction).isLastMarkIsOurs()) {
+                weights.get(direction).setWeight(0);
+            } else {
+                weights.get(direction).setWeight(weights.get(direction).getWeight() * OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER);
+            }
+        }
+
+        for (Direction direction : weights.keySet()) {
+            if (weights.get(direction).getMarkCount() < 4 && !weights.get(direction).isLastMarkIsOurs()) {
                 if (weights.get(direction.getOposite()).isLastMarkIsOurs()) {
                     weights.get(direction).setWeight(0);
-                } else if (weights.get(direction).getEnemyMarkCount() >= 4) {
+                } else if (weights.get(direction).getMarkCount() >= 4 && !weights.get(direction).isLastMarkIsOurs()) {
                     weights.get(direction).setWeight(PANIC_WEIGHT);
                 }
             }
         }
+
         for (Direction direction : weights.keySet()) {
-            weight += Math.min(weights.get(direction).getWeight(), 0);
+            weight += weights.get(direction).getWeight();
         }
         return weight;
     }
 
     private DirectionWeightParameter checkDirection(Direction direction, BattleArena effectiveMap, Coordinate coordinate) {
-        int enemyMarkCount = 0;
+        int markCount = 0;
         double weight = 0;
-        boolean lastMarkIsOurs = false;
 
-        for (int i = 0; i < 5; i++) {
-            Coordinate nextCoordinate = coordinate.getNext(direction);
-            if (i == 0) {
-                lastMarkIsOurs = effectiveMap.isOccupied(nextCoordinate) && !effectiveMap.getFieldOnCoordinate(nextCoordinate).isEnemy();
-            }
-            if (effectiveMap.isOccupied(nextCoordinate)) {
-                Field field = effectiveMap.getFieldOnCoordinate(nextCoordinate);
-                if (field.isEnemy()) {
-                    enemyMarkCount++;
-                    weight += 0.5;
-                } else {
-                    weight -= 0.5;
-                }
-            }
+        Coordinate nextCoordinate = coordinate.getNext(direction);
+        boolean markIsOurs = effectiveMap.isOccupied(nextCoordinate) && !effectiveMap.getFieldOnCoordinate(nextCoordinate).isEnemy();
+
+        while (effectiveMap.isOccupied(nextCoordinate) && effectiveMap.getFieldOnCoordinate(nextCoordinate).isEnemy() == markIsOurs) {
+            markCount++;
+            nextCoordinate = coordinate.getNext(direction);
         }
-        return new DirectionWeightParameter(weight, enemyMarkCount, lastMarkIsOurs);
+        weight = markCount * (effectiveMap.isOccupied(nextCoordinate) ? 1 : NEXT_COORDINATE_IS_FREE_MULTIPLIER);
+        return new DirectionWeightParameter(weight, markIsOurs, markCount);
+
     }
 
     private Coordinate getMaxWeightCoordinate(BattleArena map) {

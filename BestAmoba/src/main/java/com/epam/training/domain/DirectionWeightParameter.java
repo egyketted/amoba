@@ -3,40 +3,42 @@ package com.epam.training.domain;
 public class DirectionWeightParameter {
 
     private double weight;
-    private int enemyMarkCount;
-    private boolean lastMarkIsOurs;
+    private boolean markIsOurs;
+    private int markCount;
+
+    public int getMarkCount() {
+        return markCount;
+    }
+
+    public void setMarkCount(int markCount) {
+        this.markCount = markCount;
+    }
 
     public DirectionWeightParameter() {
     }
 
-    public DirectionWeightParameter(double weight, int enemyMarkCount, boolean lastMarkIsOurs) {
+    public DirectionWeightParameter(double weight, boolean lastMarkIsOurs, int markCount) {
+        super();
         this.weight = weight;
-        this.enemyMarkCount = enemyMarkCount;
-        this.lastMarkIsOurs = lastMarkIsOurs;
+
+        this.markIsOurs = lastMarkIsOurs;
+        this.markCount = markCount;
     }
 
     public double getWeight() {
         return weight;
     }
 
-    public int getEnemyMarkCount() {
-        return enemyMarkCount;
-    }
-
     public boolean isLastMarkIsOurs() {
-        return lastMarkIsOurs;
+        return markIsOurs;
     }
 
     public void setWeight(double weight) {
         this.weight = weight;
     }
 
-    public void setEnemyMarkCount(int enemyMarkCount) {
-        this.enemyMarkCount = enemyMarkCount;
-    }
-
     public void setLastMarkIsOurs(boolean lastMarkIsOurs) {
-        this.lastMarkIsOurs = lastMarkIsOurs;
+        this.markIsOurs = lastMarkIsOurs;
     }
 
 }
