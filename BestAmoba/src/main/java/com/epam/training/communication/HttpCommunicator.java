@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -15,6 +14,7 @@ import com.epam.training.communication.responsedata.IsMyTurnResponseData;
 import com.epam.training.communication.responsedata.PutRequestData;
 import com.epam.training.communication.responsedata.PutResponseData;
 import com.epam.training.communication.responsedata.RegisterRequestAnswer;
+import com.epam.training.communication.responsedata.RegisterRequestData;
 import com.epam.training.communication.responsedata.UuidData;
 import com.epam.training.domain.Coordinate;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +26,8 @@ public class HttpCommunicator implements Communicator {
     private static final String REGISTER_ENDPOINT = BASE_ENDPOINT + "/reg";
     private static final String IS_MY_TURN_ENDPOINT = BASE_ENDPOINT + "/ismyturn";
     private static final String MAKE_A_MOVE_ENDPOINT = BASE_ENDPOINT + "/put";
+
+    private static final String OUR_NAME = "Best Team";
 
     private final HttpHost host;
     private final HttpClient client;
@@ -41,7 +43,7 @@ public class HttpCommunicator implements Communicator {
 
     @Override
     public boolean register() {
-        HttpResponse response = executeGetRequest(REGISTER_ENDPOINT);
+        HttpResponse response = executePostRequest(REGISTER_ENDPOINT, new RegisterRequestData(OUR_NAME));
         if (response == null) {
             return false;
         }
@@ -63,9 +65,17 @@ public class HttpCommunicator implements Communicator {
         if (response == null) {
             return false;
         }
+        int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode == 400) {
+            System.out.println("Bad fcking request!");
+            throw new BadRequestException();
+        } else if (statusCode == 100) {
+            System.out.println("Game ended!");
+            throw new GameEndedException();
+        }
         try {
             IsMyTurnResponseData data = mapper.readValue(response.getEntity().getContent(), IsMyTurnResponseData.class);
-            if (data == null) {
+            if (data.getLastMove().isFirst()) {
                 lastMove = null;
             } else {
                 lastMove = new Coordinate(data.getLastMove().getX(), data.getLastMove().getY());
@@ -94,17 +104,6 @@ public class HttpCommunicator implements Communicator {
             e.printStackTrace();
         }
         return data != null && data.getStatusCode() == 200;
-    }
-
-    private HttpResponse executeGetRequest(String endpoint) {
-        HttpGet reqest = new HttpGet(endpoint);
-        HttpResponse response = null;
-        try {
-            response = client.execute(host, reqest);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return response;
     }
 
     private HttpResponse executePostRequest(String endpoint, Object data) {
