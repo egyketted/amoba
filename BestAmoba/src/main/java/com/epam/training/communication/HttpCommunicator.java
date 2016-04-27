@@ -65,7 +65,11 @@ public class HttpCommunicator implements Communicator {
         }
         try {
             IsMyTurnResponseData data = mapper.readValue(response.getEntity().getContent(), IsMyTurnResponseData.class);
-            lastMove = new Coordinate(data.getLastMove().getX(), data.getLastMove().getY());
+            if (data == null) {
+                lastMove = null;
+            } else {
+                lastMove = new Coordinate(data.getLastMove().getX(), data.getLastMove().getY());
+            }
             System.out.println("isMyTurnResponse: " + data);
             return data.getIsMyTurn();
         } catch (UnsupportedOperationException | IOException e) {

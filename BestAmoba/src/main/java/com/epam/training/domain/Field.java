@@ -30,4 +30,9 @@ public class Field {
         this.isEnemy = isEnemy;
     }
 
+    @Override
+    public String toString() {
+        return "";
+    }
+
 }

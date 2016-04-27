@@ -23,18 +23,22 @@ public class BaseStrategy implements Strategy {
 
     @Override
     public Coordinate getNext(Coordinate lastMove) {
-        if (!arena.isEmpty()) {
-            arena.add(lastMove, new Field(0, true));
 
-        } else {
-            Coordinate nextCoordinate = new Coordinate(1, 1);
+        if (lastMove == null) {
+            Coordinate nextCoordinate = new Coordinate((int) Math.random() * 1000, (int) Math.random() * 1000);
             arena.add(nextCoordinate, new Field(0, false));
+            System.out.println(nextCoordinate);
             return nextCoordinate;
         }
+        arena.add(lastMove, new Field(0, true));
+
         BattleArena freeMap = setWeights(arena.getEffectiveMap());
+        System.out.println("freemap: " + freeMap);
+        System.out.println("arena: " + arena);
 
         Coordinate nextCoordinate = getMaxWeightCoordinate(freeMap);
         arena.add(nextCoordinate, new Field(0, false));
+        System.out.println(nextCoordinate);
         return nextCoordinate;
     }
 

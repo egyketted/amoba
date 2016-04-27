@@ -12,7 +12,7 @@ import java.util.Set;
 public class BattleArena implements Iterable<Entry<Coordinate, Field>> {
 
     private static final int SQUARE_SIZE = 10;
-    private static final int EFFECTIVE_MAP_SIZE_LIMIT = 4;
+    private static final int EFFECTIVE_MAP_SIZE_LIMIT = 400000;
     private static final int DISTANCE_LIMIT = 10;
 
     private Map<Coordinate, Field> arena;
