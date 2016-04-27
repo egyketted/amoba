@@ -13,6 +13,7 @@ import com.epam.training.domain.FieldType;
 
 public class BaseStrategy implements Strategy {
 
+    private static final int PANIC_TRESHOLD = 3;
     private static final double ENEMY_MARK_WEIGHT_MULTIPLIER = 1.2;
     private static final double MARK_COUNT_SCALE = 3;
     private static final double NEXT_COORDINATE_IS_FREE_MULTIPLIER = 1.25;
@@ -67,12 +68,12 @@ public class BaseStrategy implements Strategy {
         }
 
         for (Direction direction : weights.keySet()) {
-            if (weights.get(direction).getMarkCount() < 4 && weights.get(direction).getType() == FieldType.ENEMY) {
+            if (weights.get(direction).getMarkCount() < PANIC_TRESHOLD  && weights.get(direction).getType() == FieldType.ENEMY) {
                 if (weights.get(direction.getOposite()).getType() == FieldType.OWN) {
                     weights.get(direction).setWeight(0);
                 }
-            } else if (weights.get(direction).getMarkCount() >= 4 && weights.get(direction).getType() == FieldType.ENEMY) {
-                weights.get(direction).setWeight(PANIC_WEIGHT);
+            } else if (weights.get(direction).getMarkCount() >= PANIC_TRESHOLD && weights.get(direction).getType() == FieldType.ENEMY) {
+                weights.get(direction).setWeight(PANIC_WEIGHT+(5-weights.get(direction).getMarkCount()));
             }
         }
 
