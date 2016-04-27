@@ -6,6 +6,7 @@ public class IsMyTurnResponseData {
     private String message;
     private boolean isMyTurn;
     private LastMoveData lastMove;
+    private boolean first;
 
     public boolean getIsMyTurn() {
         return isMyTurn;
@@ -42,6 +43,14 @@ public class IsMyTurnResponseData {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public boolean isFirst() {
+        return first;
+    }
+
+    public void setFirst(boolean first) {
+        this.first = first;
     }
 
 }

@@ -5,7 +5,6 @@ public class LastMoveData {
     private int x;
     private int y;
     private String t;
-    private boolean first;
 
     public int getX() {
         return x;
@@ -34,14 +33,6 @@ public class LastMoveData {
     @Override
     public String toString() {
         return "LastMoveData [x=" + x + ", y=" + y + ", t=" + t + "]";
-    }
-
-    public boolean isFirst() {
-        return first;
-    }
-
-    public void setFirst(boolean first) {
-        this.first = first;
     }
 
 }
