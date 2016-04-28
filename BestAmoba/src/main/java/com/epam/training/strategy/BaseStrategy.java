@@ -13,6 +13,7 @@ import com.epam.training.domain.FieldType;
 
 public class BaseStrategy implements Strategy {
 
+    private static final double UNCLOSED_THREE_OR_MORE_MARKS_MULTIPLIER = 1.5;
     private static final int WIN_TRESHOLD = 4;
     private static final int PANIC_TRESHOLD = 4;
     private static final int WIN_WEIGHT = 10000000;
@@ -38,7 +39,7 @@ public class BaseStrategy implements Strategy {
         }
         arena.add(lastMove, new Field(0, FieldType.ENEMY));
 
-        BattleArena freeMap = setWeights(arena.getEffectiveMap());
+        BattleArena freeMap = setWeights(arena);
         System.out.println("freemap: " + freeMap);
 
         Coordinate nextCoordinate = getMaxWeightCoordinate(freeMap);
@@ -84,7 +85,8 @@ public class BaseStrategy implements Strategy {
             if (chekIfThereAreAWinningNumberOfOwnMarksInTheDirection(weights, direction)) {
                 weights.get(direction).setWeight(WIN_WEIGHT);
             }
-            if (chekIfThereAreWinningNumberOfSameTypeMarksAroundTheField(weights, direction)) {
+            if (chekIfThereAreWinningNumberOfSameTypeMarksAroundTheField(weights, direction)
+                    || chekIfThereAreWinningNumberMinusOneOfSameTypeMarksAroundTheFieldUnclosed(weights, direction)) {
                 weight += PANIC_WEIGHT;
             }
         }
@@ -121,6 +123,15 @@ public class BaseStrategy implements Strategy {
                 && weights.get(direction).getType() == weights.get(direction.getOposite()).getType();
     }
 
+    private boolean chekIfThereAreWinningNumberMinusOneOfSameTypeMarksAroundTheFieldUnclosed(Map<Direction, DirectionWeightParameter> weights,
+            Direction direction) {
+        return weights.get(direction).getType() != FieldType.EMPTY
+                && weights.get(direction).getMarkCount() + weights.get(direction.getOposite()).getMarkCount() >= WIN_TRESHOLD - 1
+                && weights.get(direction).getType() == weights.get(direction.getOposite()).getType()
+                && weights.get(direction).getCloserType() == FieldType.EMPTY
+                && weights.get(direction.getOposite()).getCloserType() == FieldType.EMPTY;
+    }
+
     private DirectionWeightParameter checkDirection(Direction direction, BattleArena effectiveMap, Coordinate coordinate) {
         int markCount = 0;
         double weight = 0;
@@ -135,7 +146,9 @@ public class BaseStrategy implements Strategy {
         }
         weight = markCount * getFieldWeightMultiplier(effectiveMap, nextCoordinate, markType);
         weight *= markType == FieldType.ENEMY ? ENEMY_MARK_WEIGHT_MULTIPLIER : 1;
-        return new DirectionWeightParameter(weight, markType, markCount);
+        weight *= effectiveMap.getFieldOnCoordinate(nextCoordinate).getType() == FieldType.EMPTY && markCount >= 3
+                ? UNCLOSED_THREE_OR_MORE_MARKS_MULTIPLIER : 1;
+        return new DirectionWeightParameter(weight, markType, markCount, effectiveMap.getFieldOnCoordinate(nextCoordinate).getType());
 
     }
 
