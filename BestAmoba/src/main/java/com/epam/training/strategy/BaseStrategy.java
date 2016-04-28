@@ -14,12 +14,13 @@ import com.epam.training.domain.FieldType;
 public class BaseStrategy implements Strategy {
 
     private static final int WIN_TRESHOLD = 4;
-    private static final int PANIC_TRESHOLD = 3;
+    private static final int PANIC_TRESHOLD = 4;
     private static final int WIN_WEIGHT = 10000000;
     private static final int PANIC_WEIGHT = 1000000;
-    private static final double ENEMY_MARK_WEIGHT_MULTIPLIER = 1.2;
+    private static final double ENEMY_MARK_WEIGHT_MULTIPLIER = 1.1;
     private static final double NEXT_COORDINATE_IS_FREE_MULTIPLIER = 1.25;
     private static final double OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER = 1.1; // checked from both directions, counted twice!
+    private static final double MARKS_CLOSED_BY_ENEMY_MULTIPLIER = 0.9;
     private BattleArena arena;
 
     public BaseStrategy(BattleArena arena) {
@@ -63,24 +64,28 @@ public class BaseStrategy implements Strategy {
         for (Direction direction : weights.keySet()) {
             if (weights.get(direction.getOposite()).getType().isEnemy(weights.get(direction).getType())) {
                 weights.get(direction).setWeight(0);
-            } else {
+            } else if (weights.get(direction.getOposite()).getType() != FieldType.EMPTY) {
                 weights.get(direction).setWeight(weights.get(direction).getWeight() * OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER);
             }
         }
 
         for (Direction direction : weights.keySet()) {
-            if (weights.get(direction).getMarkCount() < PANIC_TRESHOLD && weights.get(direction).getType() == FieldType.ENEMY) {
-                if (weights.get(direction.getOposite()).getType() == FieldType.OWN) {
+            if (checkIfThereAreFewerThenPanicEnemyMarksInTheDirection(weights, direction)) {
+                //if markcount is lower then PANIC_TRESHOLD and it is closed on the other side of the evaluated field, set it to 0 because it is not important
+                if (checkIfThereIsOwnMarkInTheOppositeDirection(weights, direction)) {
                     weights.get(direction).setWeight(0);
                 }
-            } else if (weights.get(direction).getMarkCount() >= PANIC_TRESHOLD && weights.get(direction).getType() == FieldType.ENEMY) {
+            } else if (checkIfThereArePanicNumberOfEnemyMarksInTheDirection(weights, direction)) {
                 weights.get(direction).setWeight(PANIC_WEIGHT + weights.get(direction).getMarkCount());
             }
         }
 
         for (Direction direction : weights.keySet()) {
-            if (weights.get(direction).getMarkCount() >= WIN_TRESHOLD && weights.get(direction).getType() == FieldType.OWN) {
+            if (chekIfThereAreAWinningNumberOfOwnMarksInTheDirection(weights, direction)) {
                 weights.get(direction).setWeight(WIN_WEIGHT);
+            }
+            if (chekIfThereAreWinningNumberOfSameTypeMarksAroundTheField(weights, direction)) {
+                weight += PANIC_WEIGHT;
             }
         }
 
@@ -88,6 +93,32 @@ public class BaseStrategy implements Strategy {
             weight += weights.get(direction).getWeight();
         }
         return weight;
+    }
+
+    //if there are lower then PANIC_TRESHOLD marks in the given direction and they are enemy marks
+    private boolean checkIfThereAreFewerThenPanicEnemyMarksInTheDirection(Map<Direction, DirectionWeightParameter> weights, Direction direction) {
+        return weights.get(direction).getMarkCount() < PANIC_TRESHOLD && weights.get(direction).getType() == FieldType.ENEMY;
+    }
+
+    private boolean checkIfThereIsOwnMarkInTheOppositeDirection(Map<Direction, DirectionWeightParameter> weights, Direction direction) {
+        return weights.get(direction.getOposite()).getType() == FieldType.OWN;
+    }
+
+    //if there are greater or equals PANIC_TRESHOLD marks in the given direction and they are enemy, this means a sure loose on the next turn if not taken care of
+    private boolean checkIfThereArePanicNumberOfEnemyMarksInTheDirection(Map<Direction, DirectionWeightParameter> weights, Direction direction) {
+        return weights.get(direction).getMarkCount() >= PANIC_TRESHOLD && weights.get(direction).getType() == FieldType.ENEMY;
+    }
+
+    //if there are WIN_TRESHOLD count of marks in the direction and they are ours, meaning we can win in this turn
+    private boolean chekIfThereAreAWinningNumberOfOwnMarksInTheDirection(Map<Direction, DirectionWeightParameter> weights, Direction direction) {
+        return weights.get(direction).getMarkCount() >= WIN_TRESHOLD && weights.get(direction).getType() == FieldType.OWN;
+    }
+
+    //if there are WIN_TRESHOLD enemy marks on the oposite sides of the evaluated fields
+    private boolean chekIfThereAreWinningNumberOfSameTypeMarksAroundTheField(Map<Direction, DirectionWeightParameter> weights, Direction direction) {
+        return weights.get(direction).getType() != FieldType.EMPTY
+                && weights.get(direction).getMarkCount() + weights.get(direction.getOposite()).getMarkCount() >= WIN_TRESHOLD
+                && weights.get(direction).getType() == weights.get(direction.getOposite()).getType();
     }
 
     private DirectionWeightParameter checkDirection(Direction direction, BattleArena effectiveMap, Coordinate coordinate) {
@@ -102,10 +133,16 @@ public class BaseStrategy implements Strategy {
             markCount++;
             nextCoordinate = nextCoordinate.getNext(direction);
         }
-        weight = markCount * (effectiveMap.isOccupied(nextCoordinate) ? 1 : NEXT_COORDINATE_IS_FREE_MULTIPLIER);
+        weight = markCount * getFieldWeightMultiplier(effectiveMap, nextCoordinate, markType);
         weight *= markType == FieldType.ENEMY ? ENEMY_MARK_WEIGHT_MULTIPLIER : 1;
         return new DirectionWeightParameter(weight, markType, markCount);
 
+    }
+
+    private double getFieldWeightMultiplier(BattleArena effectiveMap, Coordinate nextCoordinate, FieldType markType) {
+        return effectiveMap.isOccupied(nextCoordinate)
+                ? effectiveMap.getFieldOnCoordinate(nextCoordinate).getType().isEnemy(markType) ? MARKS_CLOSED_BY_ENEMY_MULTIPLIER : 1
+                        : NEXT_COORDINATE_IS_FREE_MULTIPLIER;
     }
 
     private Coordinate getMaxWeightCoordinate(BattleArena map) {
