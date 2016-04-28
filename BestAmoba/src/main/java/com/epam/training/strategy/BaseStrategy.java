@@ -17,10 +17,10 @@ public class BaseStrategy implements Strategy {
     private static final int PANIC_TRESHOLD = 4;
     private static final int WIN_WEIGHT = 10000000;
     private static final int PANIC_WEIGHT = 1000000;
-    private static final double ENEMY_MARK_WEIGHT_MULTIPLIER = 1.1;
+    private static final double ENEMY_MARK_WEIGHT_MULTIPLIER = 1.0;
     private static final double NEXT_COORDINATE_IS_FREE_MULTIPLIER = 1.25;
     private static final double OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER = 1.1; // checked from both directions, counted twice!
-    private static final double MARKS_CLOSED_BY_ENEMY_MULTIPLIER = 0.9;
+    private static final double MARKS_CLOSED_BY_ENEMY_MULTIPLIER = 0.95;
     private BattleArena arena;
 
     public BaseStrategy(BattleArena arena) {
