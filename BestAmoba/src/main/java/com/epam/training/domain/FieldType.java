@@ -4,7 +4,11 @@ public enum FieldType {
     OWN, ENEMY, EMPTY;
 
     public boolean isEnemy(FieldType field) {
-        return field != EMPTY && field != this;
+        if (this == EMPTY) {
+            return false;
+        } else {
+            return field != EMPTY && field != this;
+        }
     }
 
 }
