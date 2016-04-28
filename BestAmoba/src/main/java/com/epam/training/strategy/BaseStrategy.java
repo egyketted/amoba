@@ -13,12 +13,13 @@ import com.epam.training.domain.FieldType;
 
 public class BaseStrategy implements Strategy {
 
+    private static final int WIN_TRESHOLD = 4;
     private static final int PANIC_TRESHOLD = 3;
+    private static final int WIN_WEIGHT = 10000000;
+    private static final int PANIC_WEIGHT = 1000000;
     private static final double ENEMY_MARK_WEIGHT_MULTIPLIER = 1.2;
-    private static final double MARK_COUNT_SCALE = 3;
     private static final double NEXT_COORDINATE_IS_FREE_MULTIPLIER = 1.25;
     private static final double OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER = 1.1; // checked from both directions, counted twice!
-    private static final int PANIC_WEIGHT = 1000000;
     private BattleArena arena;
 
     public BaseStrategy(BattleArena arena) {
@@ -68,12 +69,18 @@ public class BaseStrategy implements Strategy {
         }
 
         for (Direction direction : weights.keySet()) {
-            if (weights.get(direction).getMarkCount() < PANIC_TRESHOLD  && weights.get(direction).getType() == FieldType.ENEMY) {
+            if (weights.get(direction).getMarkCount() < PANIC_TRESHOLD && weights.get(direction).getType() == FieldType.ENEMY) {
                 if (weights.get(direction.getOposite()).getType() == FieldType.OWN) {
                     weights.get(direction).setWeight(0);
                 }
             } else if (weights.get(direction).getMarkCount() >= PANIC_TRESHOLD && weights.get(direction).getType() == FieldType.ENEMY) {
-                weights.get(direction).setWeight(PANIC_WEIGHT+(5-weights.get(direction).getMarkCount()));
+                weights.get(direction).setWeight(PANIC_WEIGHT + weights.get(direction).getMarkCount());
+            }
+        }
+
+        for (Direction direction : weights.keySet()) {
+            if (weights.get(direction).getMarkCount() >= WIN_TRESHOLD && weights.get(direction).getType() == FieldType.OWN) {
+                weights.get(direction).setWeight(WIN_WEIGHT);
             }
         }
 
@@ -88,16 +95,16 @@ public class BaseStrategy implements Strategy {
         double weight = 0;
 
         Coordinate nextCoordinate = coordinate.getNext(direction);
-        FieldType markIsOurs = effectiveMap.getFieldOnCoordinate(nextCoordinate) == null ? FieldType.EMPTY
+        FieldType markType = effectiveMap.getFieldOnCoordinate(nextCoordinate) == null ? FieldType.EMPTY
                 : effectiveMap.getFieldOnCoordinate(nextCoordinate).getType();
 
-        while (effectiveMap.isOccupied(nextCoordinate) && effectiveMap.getFieldOnCoordinate(nextCoordinate).getType() == markIsOurs) {
+        while (effectiveMap.isOccupied(nextCoordinate) && effectiveMap.getFieldOnCoordinate(nextCoordinate).getType() == markType) {
             markCount++;
             nextCoordinate = nextCoordinate.getNext(direction);
         }
-        weight = Math.pow(MARK_COUNT_SCALE, markCount) * (effectiveMap.isOccupied(nextCoordinate) ? 1 : NEXT_COORDINATE_IS_FREE_MULTIPLIER);
-        weight *= markIsOurs == FieldType.ENEMY ? ENEMY_MARK_WEIGHT_MULTIPLIER : 1;
-        return new DirectionWeightParameter(weight, markIsOurs, markCount);
+        weight = markCount * (effectiveMap.isOccupied(nextCoordinate) ? 1 : NEXT_COORDINATE_IS_FREE_MULTIPLIER);
+        weight *= markType == FieldType.ENEMY ? ENEMY_MARK_WEIGHT_MULTIPLIER : 1;
+        return new DirectionWeightParameter(weight, markType, markCount);
 
     }
 
