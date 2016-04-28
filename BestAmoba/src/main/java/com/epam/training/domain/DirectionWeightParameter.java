@@ -5,12 +5,14 @@ public class DirectionWeightParameter {
     private double weight;
     private FieldType type;
     private int markCount;
+    private FieldType closerType;
 
-    public DirectionWeightParameter(double weight, FieldType type, int markCount) {
+    public DirectionWeightParameter(double weight, FieldType type, int markCount, FieldType closerType) {
         super();
         this.weight = weight;
         this.type = type;
         this.markCount = markCount;
+        this.closerType = closerType;
     }
 
     public int getMarkCount() {
@@ -38,6 +40,14 @@ public class DirectionWeightParameter {
 
     public void setWeight(double weight) {
         this.weight = weight;
+    }
+
+    public FieldType getCloserType() {
+        return closerType;
+    }
+
+    public void setCloserType(FieldType closerType) {
+        this.closerType = closerType;
     }
 
 }
