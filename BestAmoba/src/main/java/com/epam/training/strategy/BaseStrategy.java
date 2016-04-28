@@ -146,10 +146,13 @@ public class BaseStrategy implements Strategy {
         }
         weight = markCount * getFieldWeightMultiplier(effectiveMap, nextCoordinate, markType);
         weight *= markType == FieldType.ENEMY ? ENEMY_MARK_WEIGHT_MULTIPLIER : 1;
-        weight *= effectiveMap.isOccupied(nextCoordinate) && effectiveMap.getFieldOnCoordinate(nextCoordinate).getType() == FieldType.EMPTY
+        FieldType closerType = effectiveMap.isOccupied(nextCoordinate) 
+                ? effectiveMap.getFieldOnCoordinate(nextCoordinate).getType()
+                : FieldType.EMPTY;
+        weight *= closerType == FieldType.EMPTY
                 && markCount >= 3
                 ? UNCLOSED_THREE_OR_MORE_MARKS_MULTIPLIER : 1;
-        return new DirectionWeightParameter(weight, markType, markCount, effectiveMap.getFieldOnCoordinate(nextCoordinate).getType());
+                return new DirectionWeightParameter(weight, markType, markCount, closerType);
 
     }
 
