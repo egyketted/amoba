@@ -18,6 +18,7 @@ public class BaseStrategy implements Strategy {
     private static final int PANIC_TRESHOLD = 4;
     private static final int WIN_WEIGHT = 10000000;
     private static final int PANIC_WEIGHT = 1000000;
+    private static final int REALY_IMPORTATNT_WEIGHT = 100000;
     private static final double ENEMY_MARK_WEIGHT_MULTIPLIER = 1.0;
     private static final double NEXT_COORDINATE_IS_FREE_MULTIPLIER = 1.25;
     private static final double OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER = 1.1; // checked from both directions, counted twice!
@@ -90,13 +91,13 @@ public class BaseStrategy implements Strategy {
                     || chekIfThereAreWinningNumberMinusOneOfSameTypeMarksAroundTheFieldUnclosed(weights, direction)) {
                 weight += PANIC_WEIGHT;
             }
-            if (chekIfThereIsHlafClosedThreeOrMoreInTheDirection(weights, direction)) {
+            if (chekIfThereIsHalfClosedThreeOrMoreInTheDirection(weights, direction)) {
                 halfClosedThreesAroundTheField++;
             }
         }
 
         if (halfClosedThreesAroundTheField >= 2) {
-            weight = WIN_WEIGHT;
+            weight = REALY_IMPORTATNT_WEIGHT;
         }
 
         for (Direction direction : weights.keySet()) {
@@ -105,7 +106,7 @@ public class BaseStrategy implements Strategy {
         return weight;
     }
 
-    private boolean chekIfThereIsHlafClosedThreeOrMoreInTheDirection(Map<Direction, DirectionWeightParameter> weights, Direction direction) {
+    private boolean chekIfThereIsHalfClosedThreeOrMoreInTheDirection(Map<Direction, DirectionWeightParameter> weights, Direction direction) {
         return weights.get(direction).getMarkCount() >= 3 && weights.get(direction).getCloserType() == FieldType.ENEMY;
     }
 
@@ -184,7 +185,7 @@ public class BaseStrategy implements Strategy {
     private double getFieldWeightMultiplier(BattleArena effectiveMap, Coordinate nextCoordinate, FieldType markType) {
         return effectiveMap.isOccupied(nextCoordinate)
                 ? effectiveMap.getFieldOnCoordinate(nextCoordinate).getType().isEnemy(markType) ? MARKS_CLOSED_BY_ENEMY_MULTIPLIER : 1
-                : NEXT_COORDINATE_IS_FREE_MULTIPLIER;
+                        : NEXT_COORDINATE_IS_FREE_MULTIPLIER;
     }
 
     private Coordinate getMaxWeightCoordinate(BattleArena map) {
