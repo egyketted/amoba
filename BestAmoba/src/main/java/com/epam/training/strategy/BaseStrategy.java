@@ -33,7 +33,7 @@ public class BaseStrategy implements Strategy {
     public Coordinate getNext(Coordinate lastMove) {
 
         if (lastMove == null) {
-            Coordinate nextCoordinate = new Coordinate((int) Math.random() * 1000, (int) Math.random() * 1000);
+            Coordinate nextCoordinate = new Coordinate((int) (Math.random() * 1000), (int) (Math.random() * 1000));
             arena.add(nextCoordinate, new Field(0, FieldType.OWN));
             System.out.println(nextCoordinate);
             return nextCoordinate;
@@ -178,15 +178,13 @@ public class BaseStrategy implements Strategy {
     }
 
     private FieldType getCloserType(BattleArena effectiveMap, Coordinate nextCoordinate) {
-        return effectiveMap.isOccupied(nextCoordinate)
-                ? effectiveMap.getFieldOnCoordinate(nextCoordinate).getType()
-                        : FieldType.EMPTY;
+        return effectiveMap.isOccupied(nextCoordinate) ? effectiveMap.getFieldOnCoordinate(nextCoordinate).getType() : FieldType.EMPTY;
     }
 
     private double getFieldWeightMultiplier(BattleArena effectiveMap, Coordinate nextCoordinate, FieldType markType) {
         return effectiveMap.isOccupied(nextCoordinate)
                 ? effectiveMap.getFieldOnCoordinate(nextCoordinate).getType().isEnemy(markType) ? MARKS_CLOSED_BY_ENEMY_MULTIPLIER : 1
-                        : NEXT_COORDINATE_IS_FREE_MULTIPLIER;
+                : NEXT_COORDINATE_IS_FREE_MULTIPLIER;
     }
 
     private Coordinate getMaxWeightCoordinate(BattleArena map) {
