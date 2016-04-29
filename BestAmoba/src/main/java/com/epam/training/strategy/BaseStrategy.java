@@ -34,7 +34,7 @@ public class BaseStrategy implements Strategy {
     public Coordinate getNext(Coordinate lastMove) {
 
         if (lastMove == null) {
-            Coordinate nextCoordinate = new Coordinate(-1000000, -1000000);
+            Coordinate nextCoordinate = new Coordinate(-1000, -1000);
             arena.add(nextCoordinate, new Field(0, FieldType.OWN));
             System.out.println(nextCoordinate);
             return nextCoordinate;
@@ -90,6 +90,9 @@ public class BaseStrategy implements Strategy {
             if (chekIfThereAreWinningNumberOfSameTypeMarksAroundTheField(weights, direction)
                     || chekIfThereAreWinningNumberMinusOneOfSameTypeMarksAroundTheFieldUnclosed(weights, direction)) {
                 weight += PANIC_WEIGHT;
+                if (weights.get(direction).getType() == FieldType.OWN) {
+                    weight += 1;
+                }
             }
             if (chekIfThereIsHalfClosedThreeOrMoreInTheDirection(weights, direction)) {
                 halfClosedThreesAroundTheField++;
@@ -185,7 +188,7 @@ public class BaseStrategy implements Strategy {
     private double getFieldWeightMultiplier(BattleArena effectiveMap, Coordinate nextCoordinate, FieldType markType) {
         return effectiveMap.isOccupied(nextCoordinate)
                 ? effectiveMap.getFieldOnCoordinate(nextCoordinate).getType().isEnemy(markType) ? MARKS_CLOSED_BY_ENEMY_MULTIPLIER : 1
-                        : NEXT_COORDINATE_IS_FREE_MULTIPLIER;
+                : NEXT_COORDINATE_IS_FREE_MULTIPLIER;
     }
 
     private Coordinate getMaxWeightCoordinate(BattleArena map) {
