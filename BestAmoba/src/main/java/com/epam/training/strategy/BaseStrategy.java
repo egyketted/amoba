@@ -22,6 +22,7 @@ public class BaseStrategy implements Strategy {
     private static final double NEXT_COORDINATE_IS_FREE_MULTIPLIER = 1.25;
     private static final double OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER = 1.1; // checked from both directions, counted twice!
     private static final double MARKS_CLOSED_BY_ENEMY_MULTIPLIER = 0.95;
+    private static final double CLOSED_THREE_OR_LESS_MULTIPLIER = 0;
     private BattleArena arena;
 
     public BaseStrategy(BattleArena arena) {
@@ -144,16 +145,31 @@ public class BaseStrategy implements Strategy {
             markCount++;
             nextCoordinate = nextCoordinate.getNext(direction);
         }
-        weight = markCount * getFieldWeightMultiplier(effectiveMap, nextCoordinate, markType);
+        weight = Math.pow(3, markCount) * getFieldWeightMultiplier(effectiveMap, nextCoordinate, markType);
         weight *= markType == FieldType.ENEMY ? ENEMY_MARK_WEIGHT_MULTIPLIER : 1;
-        FieldType closerType = effectiveMap.isOccupied(nextCoordinate) 
-                ? effectiveMap.getFieldOnCoordinate(nextCoordinate).getType()
-                : FieldType.EMPTY;
-        weight *= closerType == FieldType.EMPTY
-                && markCount >= 3
-                ? UNCLOSED_THREE_OR_MORE_MARKS_MULTIPLIER : 1;
-                return new DirectionWeightParameter(weight, markType, markCount, closerType);
+        FieldType closerType = getCloserType(effectiveMap, nextCoordinate);
+        weight *= calculateClosureMultiplier(markCount, markType, closerType);
+        return new DirectionWeightParameter(weight, markType, markCount, closerType);
 
+    }
+
+    private double calculateClosureMultiplier(int markCount, FieldType markType, FieldType closerType) {
+        return decideIfUnclosedThreeOrMore(markCount, closerType) ? UNCLOSED_THREE_OR_MORE_MARKS_MULTIPLIER
+                : decideIfClosedThreeOrLess(markCount, markType, closerType) ? CLOSED_THREE_OR_LESS_MULTIPLIER : 1;
+    }
+
+    private boolean decideIfClosedThreeOrLess(int markCount, FieldType markType, FieldType closerType) {
+        return closerType.isEnemy(markType) && markCount <= 3;
+    }
+
+    private boolean decideIfUnclosedThreeOrMore(int markCount, FieldType closerType) {
+        return closerType == FieldType.EMPTY && markCount >= 3;
+    }
+
+    private FieldType getCloserType(BattleArena effectiveMap, Coordinate nextCoordinate) {
+        return effectiveMap.isOccupied(nextCoordinate)
+                ? effectiveMap.getFieldOnCoordinate(nextCoordinate).getType()
+                        : FieldType.EMPTY;
     }
 
     private double getFieldWeightMultiplier(BattleArena effectiveMap, Coordinate nextCoordinate, FieldType markType) {
