@@ -81,7 +81,7 @@ public class BaseStrategy implements Strategy {
                 weights.get(direction).setWeight(PANIC_WEIGHT + weights.get(direction).getMarkCount());
             }
         }
-
+        int halfClosedThreesAroundTheField = 0;
         for (Direction direction : weights.keySet()) {
             if (chekIfThereAreAWinningNumberOfOwnMarksInTheDirection(weights, direction)) {
                 weights.get(direction).setWeight(WIN_WEIGHT);
@@ -90,12 +90,23 @@ public class BaseStrategy implements Strategy {
                     || chekIfThereAreWinningNumberMinusOneOfSameTypeMarksAroundTheFieldUnclosed(weights, direction)) {
                 weight += PANIC_WEIGHT;
             }
+            if (chekIfThereIsHlafClosedThreeOrMoreInTheDirection(weights, direction)) {
+                halfClosedThreesAroundTheField++;
+            }
+        }
+
+        if (halfClosedThreesAroundTheField >= 2) {
+            weight = WIN_WEIGHT;
         }
 
         for (Direction direction : weights.keySet()) {
             weight += weights.get(direction).getWeight();
         }
         return weight;
+    }
+
+    private boolean chekIfThereIsHlafClosedThreeOrMoreInTheDirection(Map<Direction, DirectionWeightParameter> weights, Direction direction) {
+        return weights.get(direction).getMarkCount() >= 3 && weights.get(direction).getCloserType() == FieldType.ENEMY;
     }
 
     //if there are lower then PANIC_TRESHOLD marks in the given direction and they are enemy marks
