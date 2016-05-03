@@ -25,10 +25,9 @@ public class App {
         boolean gameEnded = false;
         while (!gameEnded) {
             while (!communicator.isMyTurn()) {
-                Thread.sleep(1000);
+                Thread.sleep(10);
             }
             gameEnded = !communicator.makeMove(strategy.getNext(communicator.getLastEnemyMove()));
-            Thread.sleep(1500);
         }
     }
 

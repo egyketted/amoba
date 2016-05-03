@@ -34,7 +34,7 @@ public class BaseStrategy implements Strategy {
     public Coordinate getNext(Coordinate lastMove) {
 
         if (lastMove == null) {
-            Coordinate nextCoordinate = new Coordinate(-1000000, -1000000);
+            Coordinate nextCoordinate = new Coordinate(0, 0);
             arena.add(nextCoordinate, new Field(0, FieldType.OWN));
             System.out.println(nextCoordinate);
             return nextCoordinate;
