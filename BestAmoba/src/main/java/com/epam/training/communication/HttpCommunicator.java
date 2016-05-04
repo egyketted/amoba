@@ -9,6 +9,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.epam.training.communication.responsedata.IsMyTurnResponseData;
 import com.epam.training.communication.responsedata.PutRequestData;
@@ -20,6 +22,8 @@ import com.epam.training.domain.Coordinate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class HttpCommunicator implements Communicator {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpCommunicator.class);
 
     private static final int SERVER_PORT = 8080;
     private static final String BASE_ENDPOINT = "/xoxo";
@@ -50,8 +54,8 @@ public class HttpCommunicator implements Communicator {
         try {
             RegisterRequestAnswer readValue = mapper.readValue(response.getEntity().getContent(), RegisterRequestAnswer.class);
             uuid = readValue.getUuid();
-            System.out.println(readValue.getGid().toString());
-            System.out.println(readValue.getType().toString());
+            LOGGER.debug("Game id: " + readValue.getGid().toString());
+            LOGGER.debug("Type: " + readValue.getType().toString());
         } catch (UnsupportedOperationException | IOException e) {
             e.printStackTrace();
             return false;
@@ -67,10 +71,10 @@ public class HttpCommunicator implements Communicator {
         }
         int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 400) {
-            System.out.println("Bad fcking request!");
+            LOGGER.debug("Bad fcking request!");
             throw new BadRequestException();
         } else if (statusCode == 100) {
-            System.out.println("Game ended!");
+            LOGGER.debug("Game ended!");
             throw new GameEndedException();
         }
         try {
@@ -80,7 +84,7 @@ public class HttpCommunicator implements Communicator {
             } else {
                 lastMove = new Coordinate(data.getLastMove().getX(), data.getLastMove().getY());
             }
-            System.out.println("isMyTurnResponse: " + data);
+            LOGGER.debug("isMyTurnResponse: " + data);
             return data.getIsMyTurn();
         } catch (UnsupportedOperationException | IOException e) {
             e.printStackTrace();
@@ -99,7 +103,7 @@ public class HttpCommunicator implements Communicator {
         PutResponseData data = null;
         try {
             data = mapper.readValue(response.getEntity().getContent(), PutResponseData.class);
-            System.out.println("makeMoveResponse: " + data);
+            LOGGER.debug("makeMoveResponse: " + data);
         } catch (UnsupportedOperationException | IOException e) {
             e.printStackTrace();
         }
