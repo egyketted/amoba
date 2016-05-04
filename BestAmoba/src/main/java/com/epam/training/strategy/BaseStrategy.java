@@ -60,7 +60,7 @@ public class BaseStrategy implements Strategy {
             nextCoordinate = getMaxWeightCoordinateWithRandom(freeMap);
         }
         arena.add(nextCoordinate, new Field(0, FieldType.OWN));
-        LOGGER.info(nextCoordinate.toString());
+        LOGGER.info("Next coordinate: " + nextCoordinate.toString());
         return nextCoordinate;
     }
 

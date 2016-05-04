@@ -16,7 +16,6 @@ public class App {
         initDirection();
         register(communicator);
         play(communicator, strategy);
-
     }
 
     private static void play(Communicator communicator, Strategy strategy) throws InterruptedException {
