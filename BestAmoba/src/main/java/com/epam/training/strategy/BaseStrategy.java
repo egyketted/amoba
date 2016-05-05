@@ -16,6 +16,7 @@ import com.epam.training.domain.Direction;
 import com.epam.training.domain.DirectionWeightParameter;
 import com.epam.training.domain.Field;
 import com.epam.training.domain.FieldType;
+import com.epam.training.domain.WinType;
 
 public class BaseStrategy implements Strategy {
 
@@ -32,6 +33,8 @@ public class BaseStrategy implements Strategy {
     private static final double OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER = 1.1; // checked from both directions, counted twice!
     private static final double MARKS_CLOSED_BY_ENEMY_MULTIPLIER = 0.95;
     private static final double CLOSED_THREE_OR_LESS_MULTIPLIER = 0;
+    private static final int THINK_AHED_STEP_COUNT = 10; //step is per player
+
     private BattleArena arena;
 
     public BaseStrategy(BattleArena arena) {
@@ -57,7 +60,7 @@ public class BaseStrategy implements Strategy {
             BattleArena freeMap = setWeights(arena);
             LOGGER.info("freemap: " + freeMap);
 
-            nextCoordinate = getMaxWeightCoordinateWithRandom(freeMap);
+            nextCoordinate = getMaxWeightCoordinateWithRandom(freeMap, false);
         }
         arena.add(nextCoordinate, new Field(0, FieldType.OWN));
         LOGGER.info("Next coordinate: " + nextCoordinate.toString());
@@ -202,7 +205,7 @@ public class BaseStrategy implements Strategy {
     private double getFieldWeightMultiplier(BattleArena effectiveMap, Coordinate nextCoordinate, FieldType markType) {
         return effectiveMap.isOccupied(nextCoordinate)
                 ? effectiveMap.getFieldOnCoordinate(nextCoordinate).getType().isEnemy(markType) ? MARKS_CLOSED_BY_ENEMY_MULTIPLIER : 1
-                : NEXT_COORDINATE_IS_FREE_MULTIPLIER;
+                        : NEXT_COORDINATE_IS_FREE_MULTIPLIER;
     }
 
     @SuppressWarnings("unused")
@@ -219,7 +222,7 @@ public class BaseStrategy implements Strategy {
         return maxEntry.getKey();
     }
 
-    private Coordinate getMaxWeightCoordinateWithRandom(BattleArena map) {
+    private Coordinate getMaxWeightCoordinateWithRandom(BattleArena map, boolean thinkinAhead) {
         Random r = new Random();
         double maxValue = 0;
         List<Coordinate> optimalFields = new ArrayList<>();
@@ -233,9 +236,113 @@ public class BaseStrategy implements Strategy {
                 optimalFields.add(entry.getKey());
             }
         }
+        List<Coordinate> winningFields = new ArrayList<>();
+        List<Coordinate> noWinningFields = new ArrayList<>();
+        if (optimalFields.size() > 1 && !thinkinAhead) {
+            for (Coordinate coordinate : optimalFields) {
+                WinType winType = thinkAhead(coordinate, FieldType.OWN, swapArrena(arena), 0);
+                if (winType == WinType.WIN) {
+                    winningFields.add(coordinate);
+                } else if (winType == WinType.NO_WIN) {
+                    noWinningFields.add(coordinate);
+                }
+            }
+        }
+        if (winningFields.size() > 0) {
+            return winningFields.get(0);
+        } else if (noWinningFields.size() > 0) {
+            return noWinningFields.get(0);
+        }
         LOGGER.info("Optimal fields: " + optimalFields);
         int index = r.nextInt(optimalFields.size());
         LOGGER.info("Random index: " + index);
         return optimalFields.get(index);
     }
+
+    private BattleArena swapArrena(BattleArena battleArena) {
+        BattleArena swappedArena = new BattleArena();
+        for (Entry<Coordinate, Field> entry : battleArena) {
+            Entry<Coordinate, Field> swappedEntry = swapAndCopyEntry(entry);
+            swappedArena.add(swappedEntry.getKey(), swappedEntry.getValue());
+        }
+
+        return swappedArena;
+    }
+
+    private Entry<Coordinate, Field> swapAndCopyEntry(Entry<Coordinate, Field> entry) {
+        return new Entry<Coordinate, Field>() {
+
+            private Coordinate key = new Coordinate(entry.getKey().getX(), entry.getKey().getY());
+            private Field value = new Field(0, entry.getValue().getType().getEnemyType());
+
+            @Override
+            public Field setValue(Field value) {
+                return this.value = value;
+            }
+
+            @Override
+            public Field getValue() {
+                return value;
+            }
+
+            @Override
+            public Coordinate getKey() {
+                return key;
+            }
+        };
+    }
+
+    private WinType thinkAhead(Coordinate lastMove, FieldType currentPlayer, BattleArena fictionalArena, int currentStepCount) {
+
+        Coordinate nextCoordinate = null;
+
+        fictionalArena.add(lastMove, new Field(0, FieldType.ENEMY));
+
+        BattleArena freeMap = setWeights(fictionalArena);
+        LOGGER.info("freemap: " + freeMap);
+
+        nextCoordinate = getMaxWeightCoordinateWithRandom(freeMap, true);
+        fictionalArena.add(nextCoordinate, new Field(0, FieldType.OWN));
+        LOGGER.info("Next coordinate: " + nextCoordinate.toString());
+
+        int nextStepCount = currentStepCount + 1;
+        FieldType winer = checkWiner(fictionalArena);
+        if (winer == FieldType.EMPTY && nextStepCount >= THINK_AHED_STEP_COUNT) {
+            return WinType.NO_WIN;
+        } else if (winer == FieldType.OWN && nextStepCount % 2 == 0 || winer == FieldType.ENEMY && nextStepCount % 2 != 0) {
+            return WinType.WIN;
+        } else if (winer == FieldType.ENEMY && nextStepCount % 2 == 0 || winer == FieldType.OWN && nextStepCount % 2 != 0) {
+            return WinType.LOSE;
+        }
+
+        return thinkAhead(nextCoordinate, currentPlayer.getEnemyType(), swapArrena(fictionalArena), nextStepCount);
+    }
+
+    private FieldType checkWiner(BattleArena fictionalArena) {
+        for (Entry<Coordinate, Field> entry : fictionalArena) {
+            for (Direction direction : Direction.values()) {
+                FieldType winner = checkWinInDirection(fictionalArena, direction, entry);
+                if (winner != FieldType.EMPTY) {
+                    return winner;
+                }
+            }
+        }
+        return FieldType.EMPTY;
+    }
+
+    private FieldType checkWinInDirection(BattleArena fictionalArena, Direction direction, Entry<Coordinate, Field> entry) {
+        Coordinate nextCoordinate = entry.getKey().getNext(direction);
+        FieldType markType = entry.getValue().getType();
+        int markCount = 1;
+        while (fictionalArena.isOccupied(nextCoordinate) && fictionalArena.getFieldOnCoordinate(nextCoordinate).getType() == markType) {
+            markCount++;
+            nextCoordinate = nextCoordinate.getNext(direction);
+        }
+        if (markCount >= 5) {
+            return markType;
+        } else {
+            return FieldType.EMPTY;
+        }
+    }
+
 }

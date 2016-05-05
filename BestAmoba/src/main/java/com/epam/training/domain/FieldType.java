@@ -11,4 +11,13 @@ public enum FieldType {
         }
     }
 
+    public FieldType getEnemyType() {
+        if (this == EMPTY) {
+            return EMPTY;
+        } else if (this == OWN) {
+            return ENEMY;
+        }
+        return OWN;
+    }
+
 }

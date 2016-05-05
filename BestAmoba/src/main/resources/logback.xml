@@ -10,6 +10,6 @@
     <appender-ref ref="STDOUT" />
   </root>
   
-  <logger name="com.epam" level="debug" />
+  <logger name="com.epam" level="info" />
   
 </configuration>
