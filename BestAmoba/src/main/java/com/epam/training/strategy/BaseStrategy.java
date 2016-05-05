@@ -33,7 +33,7 @@ public class BaseStrategy implements Strategy {
     private static final double OPPOSIT_DIRECTION_SAME_MARK_MULTIPLIER = 1.1; // checked from both directions, counted twice!
     private static final double MARKS_CLOSED_BY_ENEMY_MULTIPLIER = 0.95;
     private static final double CLOSED_THREE_OR_LESS_MULTIPLIER = 0;
-    private static final int THINK_AHED_STEP_COUNT = 10; //step is per player
+    private static final int THINK_AHED_STEP_COUNT = 30; //step is per player
 
     private BattleArena arena;
 
@@ -63,7 +63,7 @@ public class BaseStrategy implements Strategy {
             nextCoordinate = getMaxWeightCoordinateWithRandom(freeMap, false);
         }
         arena.add(nextCoordinate, new Field(0, FieldType.OWN));
-        LOGGER.info("Next coordinate: " + nextCoordinate.toString());
+        LOGGER.warn("Next coordinate: " + nextCoordinate.toString());
         return nextCoordinate;
     }
 
@@ -225,33 +225,34 @@ public class BaseStrategy implements Strategy {
     private Coordinate getMaxWeightCoordinateWithRandom(BattleArena map, boolean thinkinAhead) {
         Random r = new Random();
         double maxValue = 0;
+        WinType maxWin = WinType.LOSE;
         List<Coordinate> optimalFields = new ArrayList<>();
         for (Entry<Coordinate, Field> entry : map) {
             double value = entry.getValue().getWeight();
-            if (value > maxValue) {
-                maxValue = value;
-                optimalFields.clear();
-                optimalFields.add(entry.getKey());
-            } else if (value == maxValue) {
-                optimalFields.add(entry.getKey());
-            }
-        }
-        List<Coordinate> winningFields = new ArrayList<>();
-        List<Coordinate> noWinningFields = new ArrayList<>();
-        if (optimalFields.size() > 1 && !thinkinAhead) {
-            for (Coordinate coordinate : optimalFields) {
-                WinType winType = thinkAhead(coordinate, FieldType.OWN, swapArrena(arena), 0);
-                if (winType == WinType.WIN) {
-                    winningFields.add(coordinate);
-                } else if (winType == WinType.NO_WIN) {
-                    noWinningFields.add(coordinate);
+            if (!thinkinAhead) {
+                //FIXME ugly as hell
+                BattleArena fictionalArena = swapArrena(arena);
+                WinType winType = thinkAhead(entry.getKey(), FieldType.ENEMY, fictionalArena, 0);
+                if (value > maxValue && winType.ordinal() >= maxWin.ordinal()) {
+                    maxValue = value;
+                    maxWin = winType;
+                    optimalFields.clear();
+                    optimalFields.add(entry.getKey());
+                } else if (value == maxValue) {
+                    optimalFields.add(entry.getKey());
+                }
+            } else {
+                if (value > maxValue) {
+                    maxValue = value;
+                    optimalFields.clear();
+                    optimalFields.add(entry.getKey());
+                } else if (value == maxValue) {
+                    optimalFields.add(entry.getKey());
                 }
             }
         }
-        if (winningFields.size() > 0) {
-            return winningFields.get(0);
-        } else if (noWinningFields.size() > 0) {
-            return noWinningFields.get(0);
+        if (!thinkinAhead) {
+            LOGGER.warn("thought ahead we will " + maxWin.name());
         }
         LOGGER.info("Optimal fields: " + optimalFields);
         int index = r.nextInt(optimalFields.size());
@@ -273,7 +274,7 @@ public class BaseStrategy implements Strategy {
         return new Entry<Coordinate, Field>() {
 
             private Coordinate key = new Coordinate(entry.getKey().getX(), entry.getKey().getY());
-            private Field value = new Field(0, entry.getValue().getType().getEnemyType());
+            private Field value = new Field(entry.getValue().getWeight(), entry.getValue().getType().getEnemyType());
 
             @Override
             public Field setValue(Field value) {
@@ -299,11 +300,10 @@ public class BaseStrategy implements Strategy {
         fictionalArena.add(lastMove, new Field(0, FieldType.ENEMY));
 
         BattleArena freeMap = setWeights(fictionalArena);
-        LOGGER.info("freemap: " + freeMap);
 
         nextCoordinate = getMaxWeightCoordinateWithRandom(freeMap, true);
         fictionalArena.add(nextCoordinate, new Field(0, FieldType.OWN));
-        LOGGER.info("Next coordinate: " + nextCoordinate.toString());
+        LOGGER.info("thinking ahead next coordinate: " + nextCoordinate.toString() + " as " + currentPlayer.name());
 
         int nextStepCount = currentStepCount + 1;
         FieldType winer = checkWiner(fictionalArena);
