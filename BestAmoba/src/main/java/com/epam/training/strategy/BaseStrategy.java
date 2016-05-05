@@ -1,8 +1,14 @@
 package com.epam.training.strategy;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.epam.training.domain.BattleArena;
 import com.epam.training.domain.Coordinate;
@@ -12,6 +18,8 @@ import com.epam.training.domain.Field;
 import com.epam.training.domain.FieldType;
 
 public class BaseStrategy implements Strategy {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseStrategy.class);
 
     private static final double UNCLOSED_THREE_OR_MORE_MARKS_MULTIPLIER = 1.5;
     private static final int WIN_TRESHOLD = 4;
@@ -34,35 +42,41 @@ public class BaseStrategy implements Strategy {
     public Coordinate getNext(Coordinate lastMove) {
 
         if (lastMove == null) {
-            Coordinate nextCoordinate = new Coordinate(0, 0);
+            Coordinate nextCoordinate = new Coordinate(-100, -100);
             arena.add(nextCoordinate, new Field(0, FieldType.OWN));
-            System.out.println(nextCoordinate);
+            LOGGER.info(nextCoordinate.toString());
             return nextCoordinate;
         }
+        Coordinate nextCoordinate = null;
+
         arena.add(lastMove, new Field(0, FieldType.ENEMY));
+        if (arena.getSize() == 1) {
+            nextCoordinate = new Coordinate(lastMove.getX() + 1, lastMove.getY());
+        } else {
 
-        BattleArena freeMap = setWeights(arena);
-        System.out.println("freemap: " + freeMap);
+            BattleArena freeMap = setWeights(arena);
+            LOGGER.info("freemap: " + freeMap);
 
-        Coordinate nextCoordinate = getMaxWeightCoordinate(freeMap);
+            nextCoordinate = getMaxWeightCoordinateWithRandom(freeMap);
+        }
         arena.add(nextCoordinate, new Field(0, FieldType.OWN));
-        System.out.println(nextCoordinate);
+        LOGGER.info("Next coordinate: " + nextCoordinate.toString());
         return nextCoordinate;
     }
 
-    private BattleArena setWeights(BattleArena effectiveMap) {
-        BattleArena freeMap = effectiveMap.getFreeMap();
+    private BattleArena setWeights(BattleArena arena) {
+        BattleArena freeMap = arena.getFreeMap();
         for (Entry<Coordinate, Field> entry : freeMap) {
-            entry.getValue().setWeight(calculateWeight(effectiveMap, entry.getKey()));
+            entry.getValue().setWeight(calculateWeight(arena, entry.getKey()));
         }
         return freeMap;
     }
 
-    private double calculateWeight(BattleArena effectiveMap, Coordinate coordinate) {
+    private double calculateWeight(BattleArena arena, Coordinate coordinate) {
         Map<Direction, DirectionWeightParameter> weights = new HashMap<>();
         double weight = 0;
         for (Direction direction : Direction.values()) {
-            weights.put(direction, checkDirection(direction, effectiveMap, coordinate));
+            weights.put(direction, checkDirection(direction, arena, coordinate));
         }
         for (Direction direction : weights.keySet()) {
             if (weights.get(direction.getOposite()).getType().isEnemy(weights.get(direction).getType())) {
@@ -90,6 +104,9 @@ public class BaseStrategy implements Strategy {
             if (chekIfThereAreWinningNumberOfSameTypeMarksAroundTheField(weights, direction)
                     || chekIfThereAreWinningNumberMinusOneOfSameTypeMarksAroundTheFieldUnclosed(weights, direction)) {
                 weight += PANIC_WEIGHT;
+                if (weights.get(direction).getType() == FieldType.OWN) {
+                    weight += 1;
+                }
             }
             if (chekIfThereIsHalfClosedThreeOrMoreInTheDirection(weights, direction)) {
                 halfClosedThreesAroundTheField++;
@@ -185,9 +202,10 @@ public class BaseStrategy implements Strategy {
     private double getFieldWeightMultiplier(BattleArena effectiveMap, Coordinate nextCoordinate, FieldType markType) {
         return effectiveMap.isOccupied(nextCoordinate)
                 ? effectiveMap.getFieldOnCoordinate(nextCoordinate).getType().isEnemy(markType) ? MARKS_CLOSED_BY_ENEMY_MULTIPLIER : 1
-                        : NEXT_COORDINATE_IS_FREE_MULTIPLIER;
+                : NEXT_COORDINATE_IS_FREE_MULTIPLIER;
     }
 
+    @SuppressWarnings("unused")
     private Coordinate getMaxWeightCoordinate(BattleArena map) {
         double maxValue = -10000000;
         Entry<Coordinate, Field> maxEntry = null;
@@ -199,5 +217,25 @@ public class BaseStrategy implements Strategy {
             }
         }
         return maxEntry.getKey();
+    }
+
+    private Coordinate getMaxWeightCoordinateWithRandom(BattleArena map) {
+        Random r = new Random();
+        double maxValue = 0;
+        List<Coordinate> optimalFields = new ArrayList<>();
+        for (Entry<Coordinate, Field> entry : map) {
+            double value = entry.getValue().getWeight();
+            if (value > maxValue) {
+                maxValue = value;
+                optimalFields.clear();
+                optimalFields.add(entry.getKey());
+            } else if (value == maxValue) {
+                optimalFields.add(entry.getKey());
+            }
+        }
+        LOGGER.info("Optimal fields: " + optimalFields);
+        int index = r.nextInt(optimalFields.size());
+        LOGGER.info("Random index: " + index);
+        return optimalFields.get(index);
     }
 }

@@ -8,26 +8,29 @@ import com.epam.training.strategy.BaseStrategy;
 import com.epam.training.strategy.Strategy;
 
 public class App {
+
     public static void main(String[] args) throws InterruptedException {
         Communicator communicator = new HttpCommunicator(args[0]);
-        initDirection();
         Strategy strategy = new BaseStrategy(new BattleArena());
-        //        new Strategy() {
-        //
-        //            @Override
-        //            public Coordinate getNext(Coordinate lastMove) {
-        //                return new Coordinate((int) (Math.random() * 1000), (int) (Math.random() * 1000));
-        //            }
-        //        };
-        while (!communicator.register()) {
-            Thread.sleep(200);
-        }
+
+        initDirection();
+        register(communicator);
+        play(communicator, strategy);
+    }
+
+    private static void play(Communicator communicator, Strategy strategy) throws InterruptedException {
         boolean gameEnded = false;
         while (!gameEnded) {
             while (!communicator.isMyTurn()) {
                 Thread.sleep(10);
             }
             gameEnded = !communicator.makeMove(strategy.getNext(communicator.getLastEnemyMove()));
+        }
+    }
+
+    private static void register(Communicator communicator) throws InterruptedException {
+        while (!communicator.register()) {
+            Thread.sleep(200);
         }
     }
 

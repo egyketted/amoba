@@ -46,6 +46,10 @@ public class BattleArena implements Iterable<Entry<Coordinate, Field>> {
         }
     }
 
+    public int getSize() {
+        return arena.size();
+    }
+
     public Field getFieldOnCoordinate(Coordinate coordinate) {
         return arena.get(coordinate);
     }
@@ -109,6 +113,7 @@ public class BattleArena implements Iterable<Entry<Coordinate, Field>> {
         return distances.get(0) < DISTANCE_LIMIT;
     }
 
+    @SuppressWarnings("unused")
     private boolean isCoordinateInSquare(Entry<Coordinate, Field> check) {
         List<Coordinate> coordinatesInSquare = getCoordiatesInSquare(check.getKey());
         if (check.getValue().isEnemy()) {
@@ -148,7 +153,7 @@ public class BattleArena implements Iterable<Entry<Coordinate, Field>> {
 
     @Override
     public String toString() {
-        return "BattleArena [arena=" + arena + "]";
+        return "Arena=" + arena;
     }
 
 }
